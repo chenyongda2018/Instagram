@@ -104,6 +104,7 @@ public class FeedContextMenuManager extends RecyclerView.OnScrollListener implem
     }
 
     private void performShowAnimation() {
+
         performAnimation(
                 mContextMenus.getWidth() / 2,
                 mContextMenus.getHeight(),
