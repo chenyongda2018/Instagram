@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextSwitcher;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -14,6 +15,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.instagram.R;
 import com.example.instagram.Utils;
 import com.example.instagram.widget.SquareImageView;
+
+import java.util.Map;
+import java.util.Random;
 
 
 public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder> implements View.OnClickListener {
@@ -27,6 +31,9 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
     private Context mContext;
 
     private OnFeedItemClickListener onFeedItemClickListener;
+
+    private Map<Integer,Integer> mLikeCountSet;
+    private Random random;
 
     FeedAdapter(Context mContext) {
         this.mContext = mContext;
@@ -73,8 +80,26 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
         }
     }
 
+
+    private void updateLikeCount (FeedAdapter.FeedViewHolder holder,int position,boolean animated) {
+        int curLikeCount = mLikeCountSet.get(position) + 1;
+        String likeCountStr = mContext.getResources().getQuantityString(R.plurals.likes_count, curLikeCount,curLikeCount);
+
+        if(animated) {
+            holder.tsLikeCount.setText(likeCountStr);
+        } else {
+            holder.tsLikeCount.setCurrentText(likeCountStr);
+        }
+
+        mLikeCountSet.put(position,curLikeCount);
+    }
+
     public void updateData() {
         mItemCount = 20;
+        random = new Random();
+        for (int i = 0; i < mItemCount; i++) {
+            mLikeCountSet.put(i, random.nextInt(1000));
+        }
         notifyDataSetChanged();
     }
 
@@ -105,6 +130,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
         ImageButton ibLike;
         ImageButton ibComments;
         ImageButton ibMore;
+        TextSwitcher tsLikeCount;
 
         private FeedViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -113,6 +139,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
             ibLike = itemView.findViewById(R.id.btnLike);
             ibComments = itemView.findViewById(R.id.btnComments);
             ibMore = itemView.findViewById(R.id.btnMore);
+            tsLikeCount = itemView.findViewById(R.id.ts_like_count);
         }
     }
 

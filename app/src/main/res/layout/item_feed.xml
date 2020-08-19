@@ -54,6 +54,41 @@
                 android:layout_height="48dp"
                 android:background="@drawable/btn_feed_action"
                 android:src="@drawable/ic_more_grey" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical |right"
+                android:orientation="horizontal">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_heart_small_blue" />
+
+                <TextSwitcher
+                    android:id="@+id/ts_like_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="8dp"
+                    android:inAnimation="@anim/slide_in_like_count"
+                    android:outAnimation="@anim/slide_out_like_count">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/like_count_text_color"
+                        android:text="123 likes" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/like_count_text_color"
+                        android:text="123 likes" />
+
+                </TextSwitcher>
+
+            </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>
