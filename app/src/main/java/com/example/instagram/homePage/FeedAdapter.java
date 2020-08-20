@@ -88,10 +88,10 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
         }
 
         updateLikeBtnState(holder, false, position);
-        updateLikeCount(holder,position,false);
+        updateLikeCount(holder, position, false);
 
 
-        if(mLikeAnimationMap.containsKey(position)) {
+        if (mLikeAnimationMap.containsKey(position)) {
             mLikeAnimationMap.get(position).cancel();
         }
         resetLikeBtnAnimated(position);
@@ -102,17 +102,17 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
             if (!mLikeAnimationMap.containsKey(position)) {
 
                 AnimatorSet animationSet = new AnimatorSet();
-                mLikeAnimationMap.put(position,animationSet);
+                mLikeAnimationMap.put(position, animationSet);
 
-                ObjectAnimator rotationAnim = ObjectAnimator.ofFloat(holder.ibLike,"rotation", 0f,360f);
+                ObjectAnimator rotationAnim = ObjectAnimator.ofFloat(holder.ibLike, "rotation", 0f, 360f);
                 rotationAnim.setDuration(600);
                 rotationAnim.setInterpolator(accelerateInterpolator);
 
-                ObjectAnimator scaleXAnim = ObjectAnimator.ofFloat(holder.ibLike,"scaleX",0.2f,1f);
+                ObjectAnimator scaleXAnim = ObjectAnimator.ofFloat(holder.ibLike, "scaleX", 0.2f, 1f);
                 scaleXAnim.setDuration(300);
                 scaleXAnim.setInterpolator(overshootInterpolator);
 
-                ObjectAnimator scaleYAnim = ObjectAnimator.ofFloat(holder.ibLike,"scaleY",0.2f,1f);
+                ObjectAnimator scaleYAnim = ObjectAnimator.ofFloat(holder.ibLike, "scaleY", 0.2f, 1f);
                 scaleYAnim.setDuration(300);
                 scaleYAnim.setInterpolator(overshootInterpolator);
 
@@ -167,12 +167,14 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
 
 
     private void updateLikeCount(FeedAdapter.FeedViewHolder holder, int position, boolean animated) {
-        int curLikeCount = mLikeCountSet.get(position) + 1;
-        String likeCountStr = mContext.getResources().getQuantityString(R.plurals.likes_count, curLikeCount, curLikeCount);
-
+        int curLikeCount = 0;
         if (animated) {
+            curLikeCount = mLikeCountSet.get(position) + 1;
+            String likeCountStr = mContext.getResources().getQuantityString(R.plurals.likes_count, curLikeCount, curLikeCount);
             holder.tsLikeCount.setText(likeCountStr);
         } else {
+            curLikeCount = mLikeCountSet.get(position);
+            String likeCountStr = mContext.getResources().getQuantityString(R.plurals.likes_count, curLikeCount, curLikeCount);
             holder.tsLikeCount.setCurrentText(likeCountStr);
         }
 
@@ -207,11 +209,11 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
                 }
                 break;
             case R.id.btnLike:
-                FeedViewHolder holder = (FeedViewHolder)(v.getTag());
-                if(!mLikePosition.contains(holder.getPosition())) {
+                FeedViewHolder holder = (FeedViewHolder) (v.getTag());
+                if (!mLikePosition.contains(holder.getPosition())) {
                     mLikePosition.add(holder.getPosition());
-                    updateLikeBtnState(holder,true,holder.getPosition());
-                    updateLikeCount(holder,holder.getPosition(),true);
+                    updateLikeBtnState(holder, true, holder.getPosition());
+                    updateLikeCount(holder, holder.getPosition(), true);
                 }
                 break;
         }
