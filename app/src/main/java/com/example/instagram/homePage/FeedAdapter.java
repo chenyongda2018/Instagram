@@ -1,10 +1,17 @@
 package com.example.instagram.homePage;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.AnimationSet;
 import android.view.animation.DecelerateInterpolator;
+import android.view.animation.OvershootInterpolator;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextSwitcher;
@@ -16,6 +23,9 @@ import com.example.instagram.R;
 import com.example.instagram.Utils;
 import com.example.instagram.widget.SquareImageView;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -32,8 +42,18 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
 
     private OnFeedItemClickListener onFeedItemClickListener;
 
-    private Map<Integer,Integer> mLikeCountSet;
+    private Map<Integer, Integer> mLikeCountSet = new HashMap<>();
+
+
+    private List<Integer> mLikePosition = new ArrayList<>();
+
     private Random random;
+
+    private Map<Integer, AnimatorSet> mLikeAnimationMap = new HashMap<>();
+
+    private AccelerateInterpolator accelerateInterpolator = new AccelerateInterpolator();
+
+    private OvershootInterpolator overshootInterpolator = new OvershootInterpolator();
 
     FeedAdapter(Context mContext) {
         this.mContext = mContext;
@@ -55,6 +75,10 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
         holder.ibMore.setOnClickListener(this);
         holder.ibMore.setTag(position);
         holder.ivFeedBottom.setTag(position);
+
+        holder.ibLike.setOnClickListener(this);
+        holder.ibLike.setTag(holder);
+
         if (position % 2 == 0) {
             hd.ivFeedCenter.setImageResource(R.drawable.img_feed_center_1);
             hd.ivFeedBottom.setImageResource(R.drawable.img_feed_bottom_1);
@@ -62,6 +86,67 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
             hd.ivFeedCenter.setImageResource(R.drawable.img_feed_center_2);
             hd.ivFeedBottom.setImageResource(R.drawable.img_feed_bottom_2);
         }
+
+        updateLikeBtnState(holder, false, position);
+        updateLikeCount(holder,position,false);
+
+
+        if(mLikeAnimationMap.containsKey(position)) {
+            mLikeAnimationMap.get(position).cancel();
+        }
+        resetLikeBtnAnimated(position);
+    }
+
+    private void updateLikeBtnState(FeedViewHolder holder, boolean animated, int position) {
+        if (animated) {
+            if (!mLikeAnimationMap.containsKey(position)) {
+
+                AnimatorSet animationSet = new AnimatorSet();
+                mLikeAnimationMap.put(position,animationSet);
+
+                ObjectAnimator rotationAnim = ObjectAnimator.ofFloat(holder.ibLike,"rotation", 0f,360f);
+                rotationAnim.setDuration(600);
+                rotationAnim.setInterpolator(accelerateInterpolator);
+
+                ObjectAnimator scaleXAnim = ObjectAnimator.ofFloat(holder.ibLike,"scaleX",0.2f,1f);
+                scaleXAnim.setDuration(300);
+                scaleXAnim.setInterpolator(overshootInterpolator);
+
+                ObjectAnimator scaleYAnim = ObjectAnimator.ofFloat(holder.ibLike,"scaleY",0.2f,1f);
+                scaleYAnim.setDuration(300);
+                scaleYAnim.setInterpolator(overshootInterpolator);
+
+                scaleYAnim.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        holder.ibLike.setImageResource(R.drawable.ic_heart_red);
+                    }
+                });
+
+                animationSet.play(rotationAnim);
+                animationSet.play(scaleXAnim).with(scaleYAnim).after(rotationAnim);
+
+                animationSet.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        resetLikeBtnAnimated(position);
+                    }
+                });
+                animationSet.start();
+
+
+            }
+        } else {
+            if (mLikePosition.contains(position)) {
+                holder.ibLike.setImageResource(R.drawable.ic_heart_red);
+            } else {
+                holder.ibLike.setImageResource(R.drawable.ic_heart_outline_grey);
+            }
+        }
+    }
+
+    private void resetLikeBtnAnimated(int position) {
+        mLikeAnimationMap.remove(position);
     }
 
     private void runEnterAnimation(View view, int position) {
@@ -81,17 +166,17 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
     }
 
 
-    private void updateLikeCount (FeedAdapter.FeedViewHolder holder,int position,boolean animated) {
+    private void updateLikeCount(FeedAdapter.FeedViewHolder holder, int position, boolean animated) {
         int curLikeCount = mLikeCountSet.get(position) + 1;
-        String likeCountStr = mContext.getResources().getQuantityString(R.plurals.likes_count, curLikeCount,curLikeCount);
+        String likeCountStr = mContext.getResources().getQuantityString(R.plurals.likes_count, curLikeCount, curLikeCount);
 
-        if(animated) {
+        if (animated) {
             holder.tsLikeCount.setText(likeCountStr);
         } else {
             holder.tsLikeCount.setCurrentText(likeCountStr);
         }
 
-        mLikeCountSet.put(position,curLikeCount);
+        mLikeCountSet.put(position, curLikeCount);
     }
 
     public void updateData() {
@@ -113,12 +198,20 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
         switch (v.getId()) {
             case R.id.ivFeedBottom:
                 if (onFeedItemClickListener != null) {
-                    onFeedItemClickListener.onFeedCommentClick(v, (Integer)(v.getTag()));
+                    onFeedItemClickListener.onFeedCommentClick(v, (Integer) (v.getTag()));
                 }
                 break;
             case R.id.btnMore:
                 if (onFeedItemClickListener != null) {
-                    onFeedItemClickListener.onFeedMoreClick(v, (Integer)(v.getTag()));
+                    onFeedItemClickListener.onFeedMoreClick(v, (Integer) (v.getTag()));
+                }
+                break;
+            case R.id.btnLike:
+                FeedViewHolder holder = (FeedViewHolder)(v.getTag());
+                if(!mLikePosition.contains(holder.getPosition())) {
+                    mLikePosition.add(holder.getPosition());
+                    updateLikeBtnState(holder,true,holder.getPosition());
+                    updateLikeCount(holder,holder.getPosition(),true);
                 }
                 break;
         }
